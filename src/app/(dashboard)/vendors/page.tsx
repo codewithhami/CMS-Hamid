@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react'
 import { Truck, Plus, ArrowLeft, ChevronDown, ChevronRight, FileText, Loader2, Edit, FileSpreadsheet, Search } from 'lucide-react'
 import { cardStyle, inputStyle, labelStyle, StatCard, searchInputStyle, btnPrimaryStyle, cancelBtn, actionBtnStyle } from '@/lib/styles'
 import { createClient } from '@/lib/supabase/client'
-import { exportToExcel } from '@/lib/exportUtils'
+import { exportVendorInvoice } from '@/lib/exportUtils'
 import { useSearchParams } from 'next/navigation'
 import { OrderPart, VendorOrder, VendorPayment, VendorTaan, Vendor } from '@/lib/types'
 import { calculatePartBill, calculateVendorTotalBilling, calculateVendorTotalPaid, calculateVendorBalance, calculateVendorTaans, formatCurrency, formatDate } from '@/lib/utils'
@@ -224,7 +224,7 @@ function VendorsContent() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Order History</h2>
               <button 
-                onClick={() => exportToExcel(selected.vendor_orders, `${selected.name}_Orders`, 'Orders')}
+                onClick={() => exportVendorInvoice(selected)}
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer' }}
               >
                 <FileSpreadsheet size={16} color="#059669" /> Export
