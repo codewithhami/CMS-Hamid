@@ -65,6 +65,7 @@ export function exportAllToExcel(sheets: { data: any[], sheetName: string }[], f
           let isHeader = R === 0;
           let isHighlight = false;
           let isStatus = false;
+          let isSeparator = cell.v === '---' || (cell.v === '' && worksheet[XLSX.utils.encode_cell({c: 0, r: R})]?.v === '---');
 
           // Check if this column needs highlighting in the Financial Summary sheet
           if (sheet.sheetName === 'Financial Summary') {
@@ -88,6 +89,10 @@ export function exportAllToExcel(sheets: { data: any[], sheetName: string }[], f
               font: { bold: true, color: { rgb: "FFFFFF" } },
               fill: { fgColor: { rgb: "4F46E5" } }, // Indigo 600
               alignment: { horizontal: "center", vertical: "center" }
+            };
+          } else if (isSeparator) {
+            cell.s = {
+              fill: { fgColor: { rgb: "E2E8F0" } } // Slate 200 (Separator Line)
             };
           } else if (isHighlight) {
             cell.s = {
@@ -155,6 +160,13 @@ export function exportVendorInvoice(vendor: any, dateStr: string = new Date().to
     
     let orderStartRow = currentRow
     let orderTotal = 0
+
+    // Insert a small separator line between orders (except before the first)
+    if (orderIndex > 0) {
+      aoa.push(['---', '---', '---', '---', '---', '---', '---', '---', '---'])
+      currentRow++
+      orderStartRow++ // Increment because we added a line before the data starts
+    }
 
     parts.forEach((part: any, idx: number) => {
       const netStich = (Number(part.stitches) || 0) / 1000
@@ -247,6 +259,12 @@ export function exportVendorInvoice(vendor: any, dateStr: string = new Date().to
            cellStyle.fill = { fgColor: { rgb: "C9B037" } }
            cellStyle.font = { bold: true, sz: 12, color: { rgb: "000000" } }
         }
+
+      } else if (cell.v === '---') {
+        // Separator Row Styling
+        cellStyle.fill = { fgColor: { rgb: "E2E8F0" } }
+        cellStyle.font = { color: { rgb: "E2E8F0" } } // Hide the '---' text
+        cell.v = '' // Clear text but keep style
 
       } else if (R > 3 && R < currentRow) {
         // Data Rows

@@ -134,6 +134,60 @@ export default function ReportsPage() {
       const exportSheets = tables.map((name, i) => {
         let data = results[i].data || []
         
+        if (name === 'vendor_order_parts') {
+          // Sort data by vendor name for grouping
+          data.sort((a, b) => {
+            const nameA = orderMap[a.order_id]?.vendor_name || ''
+            const nameB = orderMap[b.order_id]?.vendor_name || ''
+            return nameA.localeCompare(nameB)
+          })
+
+          const dataWithSeparators: any[] = []
+          let lastVendor = ''
+
+          data.forEach((row: any, idx: number) => {
+            const currentVendor = orderMap[row.order_id]?.vendor_name || 'Unknown'
+            
+            if (lastVendor && currentVendor !== lastVendor) {
+              // Insert a separator row
+              dataWithSeparators.push({
+                'order_id': '---',
+                'Vendor_Name': '---',
+                'Design_Name': '---',
+                'part_name': '---',
+                'stitches': '---',
+                'rate': '---',
+                'head': '---',
+                'repeat_count': '---',
+                'Total_Bill': '---'
+              })
+            }
+
+            let enrichedRow: any = {}
+            for (const key in row) {
+              let val = row[key]
+              if (typeof val === 'string' && val.length > 30 && val.includes('-') && (key === 'id' || key.endsWith('_id'))) {
+                val = getShortId(val)
+              }
+              enrichedRow[key] = val
+              if (key === 'order_id' && orderMap[row.order_id]) {
+                enrichedRow.Vendor_Name = orderMap[row.order_id].vendor_name
+                enrichedRow.Design_Name = orderMap[row.order_id].design_name
+              }
+            }
+            enrichedRow.Total_Bill = Math.round((row.stitches / 1000) * row.rate * row.head * row.repeat_count)
+            if (row.created_at) enrichedRow.created_at = row.created_at.split('T')[0]
+            delete enrichedRow.created_by
+            
+            dataWithSeparators.push(enrichedRow)
+            lastVendor = currentVendor
+          })
+          return {
+            sheetName: name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            data: dataWithSeparators
+          }
+        }
+
         if (data.length > 0) {
           data = data.map((row: any) => {
             let enrichedRow: any = {}
@@ -175,8 +229,6 @@ export default function ReportsPage() {
               enrichedRow.Mess_Deduction = mess
               enrichedRow.Remaining_Balance = base - advance - mess
               delete enrichedRow.deductions; delete enrichedRow.bonus; delete enrichedRow.paid_date; delete enrichedRow.notes
-            } else if (name === 'vendor_order_parts') {
-              enrichedRow.Total_Bill = Math.round((row.stitches / 1000) * row.rate * row.head * row.repeat_count)
             }
 
             return enrichedRow
@@ -187,7 +239,7 @@ export default function ReportsPage() {
           sheetName: name.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
           data: data
         }
-      }).filter(s => s.data.length > 0)
+      }).filter((s: any) => s.data && s.data.length > 0)
 
       const totalExpense = expenseData.reduce((s, e) => s + e.amount, 0)
       exportSheets.unshift({
