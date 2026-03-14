@@ -240,7 +240,7 @@ function VendorsContent() {
                 setOForm({ id: '', vendor_id: selected.id, date: new Date().toISOString().split('T')[0], design_name: '', invoice_label: '', parts: [
                     { part_name: 'Front', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: '', total_bill: 0 },
                     { part_name: 'Back', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: '', total_bill: 0 },
-                    { part_name: 'Duphata', stitches: 0, rate: 0.9, head: 24, repeat_count: 8, order_id: '', total_bill: 0 }
+                    { part_name: 'DupHata', stitches: 0, rate: 0.9, head: 24, repeat_count: 8, order_id: '', total_bill: 0 }
                 ]}); 
                 setShowOrderModal(true) 
             }} style={btnPrimaryStyle}>Add New Order</button>
@@ -252,7 +252,7 @@ function VendorsContent() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
           <StatCard label="Total Billing" value={formatCurrency(tBill)} color="#2563eb" bg="#eff6ff" Icon={FileText} />
           <StatCard label="Total Paid" value={formatCurrency(tPaid)} color="#059669" bg="#ecfdf5" Icon={Truck} />
-          <StatCard label="Balance Owed" value={formatCurrency(bal)} color={bal > 0 ? "#ef4444" : "#059669"} bg={bal > 0 ? "#fef2f2" : "#f0fdf4"} Icon={FileText} />
+          <StatCard label="Remaining Balance" value={formatCurrency(bal)} color={bal > 0 ? "#ef4444" : "#059669"} bg={bal > 0 ? "#fef2f2" : "#f0fdf4"} Icon={FileText} />
           <StatCard label="Total Taans" value={calculateVendorTaans(selected).toString()} color="#7c3aed" bg="#f5f3ff" Icon={Truck} />
         </div>
 
