@@ -21,15 +21,8 @@ export function formatCurrency(amount: any): string {
 
 /**
  * Calculates the total bill for a vendor order part.
- * Prioritizes stored total_bill, falls back to manual calculation if missing or zero.
  */
 export function calculatePartBill(part: any): number {
-  const storedTotal = safeNumber(part.total_bill)
-  
-  // If we have a stored total, use it
-  if (storedTotal > 0) return storedTotal
-
-  // Otherwise calculate manually
   const stitches = safeNumber(part.stitches)
   const rate = safeNumber(part.rate)
   const head = safeNumber(part.head)
