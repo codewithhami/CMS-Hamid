@@ -355,7 +355,17 @@ body {
     grid-template-columns: repeat(2, 1fr);
   }
   :root {
-    --sidebar-transform: translateX(-100%);
+    --sidebar-transform: translateX(-110%);
+  }
+
+  /* Force hide sidebar on small screens unless explicitly opened via state class */
+  aside:not(.mobile-visible) {
+    transform: translateX(-110%) !important;
+  }
+  
+  aside.mobile-visible {
+    transform: translateX(0) !important;
+    box-shadow: 0 0 40px rgba(0,0,0,0.3);
   }
 }
 
@@ -374,7 +384,7 @@ body {
   }
   
   :root {
-    --sidebar-transform: translateX(-100%);
+    --sidebar-transform: translateX(-110%);
   }
 
   /* Slash bulky padding on mobile devices entirely */

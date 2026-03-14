@@ -50,17 +50,18 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
         />
       )}
 
-      <aside style={{
-        position: 'fixed', top: 0, left: 0, height: '100vh',
-        width: sidebarWidth,
-        background: 'white',
-        borderRight: '1px solid #e5e7eb',
-        zIndex: 50,
-        display: 'flex', flexDirection: 'column',
-        transition: 'transform 0.3s ease-in-out',
-        transform: mobileOpen ? 'translateX(0)' : 'var(--sidebar-transform, translateX(0))',
-        boxShadow: mobileOpen ? '4px 0 24px rgba(0,0,0,0.1)' : 'none',
-      }}>
+      <aside 
+        className={mobileOpen ? 'mobile-visible' : ''}
+        style={{
+          position: 'fixed', top: 0, left: 0, height: '100vh',
+          width: sidebarWidth,
+          background: 'white',
+          borderRight: '1px solid #e5e7eb',
+          zIndex: 50,
+          display: 'flex', flexDirection: 'column',
+          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
         {/* Header */}
         <div style={{
           display: 'flex', alignItems: 'center',
@@ -98,11 +99,12 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
               onClick={() => setMobileOpen(false)}
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                width: '28px', height: '28px', borderRadius: '8px',
-                background: 'transparent', border: 'none', cursor: 'pointer', color: '#94a3b8',
+                width: '36px', height: '36px', borderRadius: '10px',
+                background: '#fef2f2', border: 'none', cursor: 'pointer', color: '#ef4444',
+                marginLeft: '8px'
               }}
             >
-              <X style={{ width: '16px', height: '16px' }} />
+              <X style={{ width: '20px', height: '20px' }} />
             </button>
           )}
         </div>

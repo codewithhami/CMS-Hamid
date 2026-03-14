@@ -219,14 +219,14 @@ export default function TopBar({ onMenuClick, title }: TopBarProps) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <button
           onClick={onMenuClick}
-          className="lg:hidden flex"
           style={{
             alignItems: 'center', justifyContent: 'center',
-            width: '36px', height: '36px', borderRadius: '10px',
-            background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b',
+            width: '40px', height: '40px', borderRadius: '12px',
+            background: '#f1f5f9', border: 'none', cursor: 'pointer', color: '#1e293b',
           }}
+          className="flex lg:hidden"
         >
-          <Menu style={{ width: '20px', height: '20px' }} />
+          <Menu style={{ width: '22px', height: '22px' }} />
         </button>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <h1 className="truncate hidden sm:block" style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0f172a', maxWidth: '160px' }}>{title}</h1>
