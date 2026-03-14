@@ -129,15 +129,21 @@ function VendorsContent() {
         orderId = orderData.id
       }
 
-      const partsToInsert = oForm.parts.map(p => ({
-        order_id: orderId,
-        factory_id: activeFactory.id,
-        part_name: p.part_name || 'Unnamed Part',
-        stitches: safeNumber(p.stitches),
-        rate: safeNumber(p.rate),
-        head: safeNumber(p.head),
-        repeat_count: safeNumber(p.repeat_count)
-      }))
+      const partsToInsert = oForm.parts.map(p => {
+        const total = calculatePartBill(p)
+        return {
+          order_id: orderId,
+          factory_id: activeFactory.id,
+          part_name: p.part_name || 'Unnamed Part',
+          stitches: safeNumber(p.stitches),
+          rate: safeNumber(p.rate),
+          head: safeNumber(p.head),
+          repeat_count: safeNumber(p.repeat_count),
+          is_suit: p.is_suit || false,
+          suit_quantity: safeNumber(p.suit_quantity),
+          total_bill: total
+        }
+      })
 
       console.log('Inserting Parts Payload:', partsToInsert)
       const { error: partsError } = await supabase.from('vendor_order_parts').insert(partsToInsert)
@@ -198,15 +204,15 @@ function VendorsContent() {
   function addPart() {
     setOForm(prev => ({ 
       ...prev, 
-      parts: [...prev.parts, { part_name: '', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: prev.id || '', total_bill: 0 }] 
+      parts: [...prev.parts, { part_name: '', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: prev.id || '', total_bill: 0, is_suit: false, suit_quantity: 0 }] 
     }))
   }
 
   function addStandardParts() {
     const defaults = [
-      { part_name: 'Front', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: oForm.id || '', total_bill: 0 },
-      { part_name: 'Back', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: oForm.id || '', total_bill: 0 },
-      { part_name: 'Duphata', stitches: 0, rate: 0.9, head: 24, repeat_count: 8, order_id: oForm.id || '', total_bill: 0 }
+      { part_name: 'Front', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: oForm.id || '', total_bill: 0, is_suit: false, suit_quantity: 0 },
+      { part_name: 'Back', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: oForm.id || '', total_bill: 0, is_suit: false, suit_quantity: 0 },
+      { part_name: 'Duphata', stitches: 0, rate: 0.9, head: 24, repeat_count: 8, order_id: oForm.id || '', total_bill: 0, is_suit: false, suit_quantity: 0 }
     ]
     setOForm(prev => ({ ...prev, parts: [...prev.parts, ...defaults] }))
   }
@@ -215,7 +221,7 @@ function VendorsContent() {
     setOForm(prev => {
       const newParts = [...prev.parts]
       newParts[index] = { ...newParts[index], [field]: val }
-      if (['stitches', 'rate', 'head', 'repeat_count'].includes(field as string)) {
+      if (['stitches', 'rate', 'head', 'repeat_count', 'is_suit', 'suit_quantity'].includes(field as string)) {
         newParts[index].total_bill = calculatePartBill(newParts[index] as OrderPart)
       }
       return { ...prev, parts: newParts }
@@ -227,9 +233,9 @@ function VendorsContent() {
     if (parts.length === 0) {
       // If order is somehow empty, add defaults
       parts = [
-        { part_name: 'Front', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: order.id, total_bill: 0 },
-        { part_name: 'Back', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: order.id, total_bill: 0 },
-        { part_name: 'Duphata', stitches: 0, rate: 0.9, head: 24, repeat_count: 8, order_id: order.id, total_bill: 0 }
+        { part_name: 'Front', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: order.id, total_bill: 0, is_suit: false, suit_quantity: 0 },
+        { part_name: 'Back', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: order.id, total_bill: 0, is_suit: false, suit_quantity: 0 },
+        { part_name: 'Duphata', stitches: 0, rate: 0.9, head: 24, repeat_count: 8, order_id: order.id, total_bill: 0, is_suit: false, suit_quantity: 0 }
       ]
     }
     setOForm({
@@ -264,9 +270,9 @@ function VendorsContent() {
             <button onClick={() => { setVForm({ id: selected.id, name: selected.name, phone: selected.phone }); setShowVendorModal(true) }} style={{ ...btnPrimaryStyle, background: '#f8fafc', color: '#444', border: '1px solid #e2e8f0' }}>Edit Vendor</button>
             <button onClick={() => { 
                 setOForm({ id: '', vendor_id: selected.id, date: new Date().toISOString().split('T')[0], design_name: '', invoice_label: '', parts: [
-                    { part_name: 'Front', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: '', total_bill: 0 },
-                    { part_name: 'Back', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: '', total_bill: 0 },
-                    { part_name: 'Duphata', stitches: 0, rate: 0.9, head: 24, repeat_count: 8, order_id: '', total_bill: 0 }
+                    { part_name: 'Front', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: '', total_bill: 0, is_suit: false, suit_quantity: 0 },
+                    { part_name: 'Back', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: '', total_bill: 0, is_suit: false, suit_quantity: 0 },
+                    { part_name: 'Duphata', stitches: 0, rate: 0.9, head: 24, repeat_count: 8, order_id: '', total_bill: 0, is_suit: false, suit_quantity: 0 }
                 ]}); 
                 setShowOrderModal(true) 
             }} style={btnPrimaryStyle}>Add New Order</button>
@@ -432,26 +438,59 @@ function VendorsContent() {
                 
                 <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden' }}>
                   <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
                       <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e5e7eb' }}>
                         <tr>
+                          <th style={{ ...thStyle, padding: '12px 16px' }}>Type</th>
                           <th style={{ ...thStyle, padding: '12px 16px' }}>Part Name</th>
-                          <th style={{ ...thStyle, textAlign: 'right', padding: '12px 16px' }}>Stitches</th>
+                          <th style={{ ...thStyle, textAlign: 'right', padding: '12px 16px' }}>Qty / Stitches</th>
                           <th style={{ ...thStyle, textAlign: 'right', padding: '12px 16px' }}>Rate</th>
                           <th style={{ ...thStyle, textAlign: 'right', padding: '12px 16px' }}>Head</th>
                           <th style={{ ...thStyle, textAlign: 'right', padding: '12px 16px' }}>Repeat</th>
-                          <th style={{ ...thStyle, textAlign: 'right', padding: '12px 16px', background: '#f0f9ff' }}>Total Amount</th>
-                          <th style={{ ...thStyle, width: '50px' }}></th>
+                          <th style={{ ...thStyle, textAlign: 'right', padding: '12px 16px', background: '#f0f9ff' }}>Total</th>
+                          <th style={{ ...thStyle, width: '40px' }}></th>
                         </tr>
                       </thead>
                       <tbody>
                         {oForm.parts.map((p, i) => (
                           <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '8px 12px' }}>
+                               <select 
+                                 value={p.is_suit ? 'suit' : 'stitch'} 
+                                 onChange={e => updatePart(i, 'is_suit', e.target.value === 'suit')} 
+                                 style={{...inputStyle, padding: '4px 8px', fontSize: '11px', height: 'auto', width: '70px'}}
+                               >
+                                 <option value="stitch">Stitch</option>
+                                 <option value="suit">Suit</option>
+                               </select>
+                            </td>
                             <td style={{ padding: '8px 12px' }}><input value={p.part_name} onChange={e => updatePart(i, 'part_name', e.target.value)} style={{...inputStyle, padding: '8px 12px', fontSize: '0.8125rem'}} placeholder="e.g. Sleeve" /></td>
-                            <td style={{ padding: '8px 12px' }}><input type="number" value={p.stitches} onChange={e => updatePart(i, 'stitches', Number(e.target.value))} style={{...inputStyle, padding: '8px 12px', textAlign: 'right', fontSize: '0.8125rem'}} /></td>
+                            <td style={{ padding: '8px 12px' }}>
+                              {p.is_suit ? (
+                                <input type="number" placeholder="Qty" value={p.suit_quantity} onChange={e => updatePart(i, 'suit_quantity', Number(e.target.value))} style={{...inputStyle, padding: '8px 12px', textAlign: 'right', fontSize: '0.8125rem'}} />
+                              ) : (
+                                <input type="number" placeholder="Stitches" value={p.stitches} onChange={e => updatePart(i, 'stitches', Number(e.target.value))} style={{...inputStyle, padding: '8px 12px', textAlign: 'right', fontSize: '0.8125rem'}} />
+                              )}
+                            </td>
                             <td style={{ padding: '8px 12px' }}><input type="number" step="0.01" value={p.rate} onChange={e => updatePart(i, 'rate', Number(e.target.value))} style={{...inputStyle, padding: '8px 12px', textAlign: 'right', fontSize: '0.8125rem'}} /></td>
-                            <td style={{ padding: '8px 12px' }}><input type="number" value={p.head} onChange={e => updatePart(i, 'head', Number(e.target.value))} style={{...inputStyle, padding: '8px 12px', textAlign: 'right', fontSize: '0.8125rem'}} /></td>
-                            <td style={{ padding: '8px 12px' }}><input type="number" value={p.repeat_count} onChange={e => updatePart(i, 'repeat_count', Number(e.target.value))} style={{...inputStyle, padding: '8px 12px', textAlign: 'right', fontSize: '0.8125rem'}} /></td>
+                            <td style={{ padding: '8px 12px' }}>
+                              <input 
+                                type="number" 
+                                disabled={p.is_suit} 
+                                value={p.is_suit ? 1 : p.head} 
+                                onChange={e => updatePart(i, 'head', Number(e.target.value))} 
+                                style={{...inputStyle, padding: '8px 12px', textAlign: 'right', fontSize: '0.8125rem', opacity: p.is_suit ? 0.3 : 1}} 
+                              />
+                            </td>
+                            <td style={{ padding: '8px 12px' }}>
+                              <input 
+                                type="number" 
+                                disabled={p.is_suit} 
+                                value={p.is_suit ? 1 : p.repeat_count} 
+                                onChange={e => updatePart(i, 'repeat_count', Number(e.target.value))} 
+                                style={{...inputStyle, padding: '8px 12px', textAlign: 'right', fontSize: '0.8125rem', opacity: p.is_suit ? 0.3 : 1}} 
+                              />
+                            </td>
                             <td style={{ padding: '8px 16px', textAlign: 'right', fontWeight: 700, color: '#1d4ed8', background: '#f0f9ff' }}>{formatCurrency(p.total_bill)}</td>
                             <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                               <button 

@@ -109,6 +109,8 @@ export type OrderPart = {
   head: number
   repeat_count: number
   total_bill: number
+  is_suit?: boolean
+  suit_quantity?: number
 }
 
 export type VendorOrder = {

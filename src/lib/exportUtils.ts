@@ -169,18 +169,28 @@ export function exportVendorInvoice(vendor: any, dateStr: string = new Date().to
     }
 
     parts.forEach((part: any, idx: number) => {
-      const netStich = (Number(part.stitches) || 0) / 1000
-      const amount = Number(part.total_bill) || Math.round(netStich * (Number(part.rate)||0) * (Number(part.head)||0) * (Number(part.repeat_count)||0))
+      let netStichNum = 0
+      let amount = Number(part.total_bill) || 0
+      
+      if (!part.is_suit) {
+        netStichNum = (Number(part.stitches) || 0) / 1000
+        if (amount === 0) {
+          amount = Math.round(netStichNum * (Number(part.rate)||0) * (Number(part.head)||0) * (Number(part.repeat_count)||0))
+        }
+      } else if (amount === 0) {
+        amount = Math.round((Number(part.suit_quantity) || 0) * (Number(part.rate) || 0))
+      }
+      
       orderTotal += amount
       
       aoa.push([
-        part.part_name || 'Part',
+        part.is_suit ? `Suit (${part.suit_quantity})` : (part.part_name || 'Part'),
         idx === 0 ? order.design_name || 'N/A' : '',
-        part.stitches || 0,
-        netStich.toFixed(1),
+        part.is_suit ? part.suit_quantity : (part.stitches || 0),
+        part.is_suit ? 'N/A' : netStichNum.toFixed(1),
         part.rate || 0,
-        part.head || 0,
-        part.repeat_count || 0,
+        part.is_suit ? 1 : (part.head || 0),
+        part.is_suit ? 1 : (part.repeat_count || 0),
         amount,
         idx === 0 ? 'TOTAL_PLACEHOLDER' : '' // Will be replaced after calculating sum
       ])

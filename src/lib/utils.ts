@@ -23,6 +23,11 @@ export function formatCurrency(amount: any): string {
  * Calculates the total bill for a vendor order part.
  */
 export function calculatePartBill(part: any): number {
+  if (part.is_suit) {
+    const quantity = safeNumber(part.suit_quantity)
+    const rate = safeNumber(part.rate)
+    return Math.round(quantity * rate)
+  }
   const stitches = safeNumber(part.stitches)
   const rate = safeNumber(part.rate)
   const head = safeNumber(part.head)
