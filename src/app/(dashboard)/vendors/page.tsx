@@ -61,7 +61,7 @@ function VendorsContent() {
         vendor_orders (
           id, vendor_id, date, design_name, invoice_label,
           vendor_order_parts (
-            id, order_id, part_name, stitches, rate, head, repeat_count, total_bill
+            id, order_id, part_name, stitches, rate, head, repeat_count, total_bill, is_suit, suit_quantity
           )
         ),
         vendor_payments (id, vendor_id, date, advance_payment, notes),

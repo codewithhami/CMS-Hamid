@@ -74,7 +74,7 @@ export default function DashboardPage() {
           id,
           vendor_orders (
             id,
-            vendor_order_parts (total_bill, stitches, rate, head, repeat_count)
+            vendor_order_parts (total_bill, stitches, rate, head, repeat_count, is_suit, suit_quantity)
           ),
           vendor_payments (advance_payment)
         `).eq('factory_id', activeFactory.id)

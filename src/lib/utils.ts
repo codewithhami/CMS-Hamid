@@ -44,7 +44,7 @@ export function calculateVendorTotalBilling(vendor: any): number {
   const orders = vendor.vendor_orders || []
   return orders.reduce((sum: number, order: any) => {
     const parts = order.vendor_order_parts || []
-    return sum + parts.reduce((ps: number, p: any) => ps + calculatePartBill(p), 0)
+    return sum + parts.reduce((ps: number, p: any) => ps + safeNumber(p.total_bill), 0)
   }, 0)
 }
 
