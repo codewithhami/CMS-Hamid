@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, Suspense } from 'react'
-import { Truck, Plus, ArrowLeft, ChevronDown, ChevronRight, FileText, Loader2, Edit, FileSpreadsheet, Search } from 'lucide-react'
+import { Truck, Plus, ArrowLeft, ChevronDown, ChevronRight, FileText, Loader2, Edit, Trash2, FileSpreadsheet, Search } from 'lucide-react'
 import { cardStyle, inputStyle, labelStyle, StatCard, searchInputStyle, btnPrimaryStyle, cancelBtn, actionBtnStyle } from '@/lib/styles'
 import { createClient } from '@/lib/supabase/client'
 import { exportVendorInvoice, exportToExcel } from '@/lib/exportUtils'
@@ -151,6 +151,35 @@ function VendorsContent() {
     if (!error) { fetchData(); setShowPaymentModal(false) } else alert(error.message)
   }
 
+  async function deleteVendor(id: string) {
+    if (!confirm('Are you sure you want to delete this vendor? This will also delete ALL their orders, payments, and taans! This action cannot be undone.')) return
+    
+    setLoading(true)
+    try {
+      // Manual cleanup of associated data to be safe (if cascade isn't set)
+      await supabase.from('vendor_payments').delete().eq('vendor_id', id)
+      await supabase.from('vendor_taans').delete().eq('vendor_id', id)
+      
+      // For orders, we need to delete parts first
+      const { data: orders } = await supabase.from('vendor_orders').select('id').eq('vendor_id', id)
+      if (orders && orders.length > 0) {
+        const orderIds = orders.map(o => o.id)
+        await supabase.from('vendor_order_parts').delete().in('order_id', orderIds)
+        await supabase.from('vendor_orders').delete().in('id', orderIds)
+      }
+
+      const { error } = await supabase.from('vendors').delete().eq('id', id)
+      if (error) throw error
+      
+      setVendors(prev => prev.filter(v => v.id !== id))
+      if (selectedId === id) setSelectedId(null)
+    } catch (err: any) {
+      alert('Error deleting vendor: ' + err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function saveTaan() {
     if (!selectedId || !activeFactory) return
     const payload = { vendor_id: selectedId, factory_id: activeFactory.id, date: tForm.date, count: tForm.count, notes: tForm.notes }
@@ -205,6 +234,7 @@ function VendorsContent() {
             <p style={{ color: '#64748b' }}>{selected.phone}</p>
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
+            <button onClick={() => deleteVendor(selected.id)} style={{ ...btnPrimaryStyle, background: '#fef2f2', color: '#dc2626', border: '1px solid #fee2e2' }}>Delete Vendor</button>
             <button onClick={() => { setVForm({ id: selected.id, name: selected.name, phone: selected.phone }); setShowVendorModal(true) }} style={{ ...btnPrimaryStyle, background: '#f8fafc', color: '#444', border: '1px solid #e2e8f0' }}>Edit Vendor</button>
             <button onClick={() => { 
                 setOForm({ id: '', vendor_id: selected.id, date: new Date().toISOString().split('T')[0], design_name: '', invoice_label: '', parts: [
@@ -466,6 +496,13 @@ function VendorsContent() {
                   title="Edit Vendor"
                 >
                   <Edit size={16} />
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); deleteVendor(v.id); }} 
+                  style={actionBtnStyle('delete')}
+                  title="Delete Vendor"
+                >
+                  <Trash2 size={16} />
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); setSelectedId(v.id); }} 
