@@ -136,8 +136,7 @@ function VendorsContent() {
         stitches: safeNumber(p.stitches),
         rate: safeNumber(p.rate),
         head: safeNumber(p.head),
-        repeat_count: safeNumber(p.repeat_count),
-        total_bill: calculatePartBill(p)
+        repeat_count: safeNumber(p.repeat_count)
       }))
 
       const { error: partsError } = await supabase.from('vendor_order_parts').insert(partsToInsert)
