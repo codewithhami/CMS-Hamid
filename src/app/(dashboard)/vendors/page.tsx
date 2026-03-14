@@ -194,6 +194,15 @@ function VendorsContent() {
     }))
   }
 
+  function addStandardParts() {
+    const defaults = [
+      { part_name: 'Front', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: oForm.id || '', total_bill: 0 },
+      { part_name: 'Back', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: oForm.id || '', total_bill: 0 },
+      { part_name: 'Duphata', stitches: 0, rate: 0.9, head: 24, repeat_count: 8, order_id: oForm.id || '', total_bill: 0 }
+    ]
+    setOForm(prev => ({ ...prev, parts: [...prev.parts, ...defaults] }))
+  }
+
   function updatePart(index: number, field: keyof Omit<OrderPart, 'id'>, val: any) {
     setOForm(prev => {
       const newParts = [...prev.parts]
@@ -240,7 +249,7 @@ function VendorsContent() {
                 setOForm({ id: '', vendor_id: selected.id, date: new Date().toISOString().split('T')[0], design_name: '', invoice_label: '', parts: [
                     { part_name: 'Front', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: '', total_bill: 0 },
                     { part_name: 'Back', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: '', total_bill: 0 },
-                    { part_name: 'DupHata', stitches: 0, rate: 0.9, head: 24, repeat_count: 8, order_id: '', total_bill: 0 }
+                    { part_name: 'Duphata', stitches: 0, rate: 0.9, head: 24, repeat_count: 8, order_id: '', total_bill: 0 }
                 ]}); 
                 setShowOrderModal(true) 
             }} style={btnPrimaryStyle}>Add New Order</button>
@@ -394,9 +403,14 @@ function VendorsContent() {
                     <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Order Parts Details</h3>
                     <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Enter stitches, rate, head, and repeats per part</p>
                   </div>
-                  <button onClick={addPart} style={{ ...btnPrimaryStyle, padding: '6px 16px', fontSize: '0.8125rem' }}>
-                    <Plus size={14} /> Add New Part
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={addStandardParts} style={{ ...btnPrimaryStyle, padding: '6px 16px', fontSize: '0.8125rem', background: '#f8fafc', color: '#444', border: '1px solid #e2e8f0' }}>
+                      <Plus size={14} /> Add Set (F, B, D)
+                    </button>
+                    <button onClick={addPart} style={{ ...btnPrimaryStyle, padding: '6px 16px', fontSize: '0.8125rem' }}>
+                      <Plus size={14} /> Add Part
+                    </button>
+                  </div>
                 </div>
                 
                 <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden' }}>
@@ -475,7 +489,7 @@ function VendorsContent() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
         <StatCard label="Total Vendors" value={vendors.length} Icon={Truck} color="#2563eb" bg="#eff6ff" />
         <StatCard label="Total Billing" value={formatCurrency(vendors.reduce((s, v) => s + calculateVendorTotalBilling(v), 0))} Icon={FileText} color="#7c3aed" bg="#f5f3ff" />
-        <StatCard label="Total Payables" value={formatCurrency(vendors.reduce((s, v) => s + calculateVendorBalance(v), 0))} Icon={FileText} color="#dc2626" bg="#fef2f2" />
+        <StatCard label="Remaining Balance" value={formatCurrency(vendors.reduce((s, v) => s + calculateVendorBalance(v), 0))} Icon={FileText} color="#dc2626" bg="#fef2f2" />
       </div>
 
       <div style={cardStyle}>

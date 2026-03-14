@@ -166,7 +166,7 @@ export default function DashboardPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
             <StatCard label="Total Vendors" value={vendorStats.total} Icon={Truck} color="#2563eb" bg="#eff6ff" />
             <StatCard label="Total Vendor Bills" value={formatCurrency(vendorStats.totalBill)} Icon={FileText} color="#7c3aed" bg="#f5f3ff" />
-            <StatCard label="Remaining Payables" value={formatCurrency(vendorStats.balance)} Icon={TrendingDown} color="#dc2626" bg="#fef2f2" />
+            <StatCard label="Remaining Balance" value={formatCurrency(vendorStats.balance)} Icon={TrendingDown} color="#dc2626" bg="#fef2f2" />
             <StatCard label="Overall Net Profit" value={formatCurrency(netProfit)} Icon={TrendingUp} color={isProfit ? '#16a34a' : '#dc2626'} bg={isProfit ? '#dcfce7' : '#fee2e2'} />
           </div>
 
