@@ -307,7 +307,9 @@ function VendorsContent() {
                   { header: 'Notes', accessor: 'notes' },
                   { header: 'Amount', accessor: (p: any) => formatCurrency(p.advance_payment || 0), align: 'right' },
                   { header: '', accessor: (p: any) => (
-                    <button onClick={() => { setPForm(p); setShowPaymentModal(true) }} style={{ ...actionBtnStyle('edit'), padding: '4px' }}><Edit size={12} /></button>
+                    <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                      <button onClick={() => { setPForm(p); setShowPaymentModal(true) }} style={actionBtnStyle('edit')}><Edit size={16} /></button>
+                    </div>
                   ), align: 'right' }
                 ]}
               />
@@ -327,7 +329,9 @@ function VendorsContent() {
                   { header: 'Notes', accessor: 'notes' },
                   { header: 'Count', accessor: 'count', align: 'right' },
                   { header: '', accessor: (t: any) => (
-                    <button onClick={() => { setTForm(t); setShowTaanModal(true) }} style={{ ...actionBtnStyle('edit'), padding: '4px' }}><Edit size={12} /></button>
+                    <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
+                      <button onClick={() => { setTForm(t); setShowTaanModal(true) }} style={actionBtnStyle('edit')}><Edit size={16} /></button>
+                    </div>
                   ), align: 'right' }
                 ]}
               />
@@ -455,11 +459,22 @@ function VendorsContent() {
               return <span style={{ fontWeight: 700, color: bal > 0 ? '#dc2626' : '#0f172a' }}>{formatCurrency(bal)}</span>
             }, align: 'right' },
             { header: '', accessor: (v: Vendor) => (
-              <button 
-                onClick={(e) => { e.stopPropagation(); setSelectedId(v.id); }} 
-                className="btn-primary" 
-                style={{ padding: '6px 12px', fontSize: '0.75rem', borderRadius: '8px' }}
-              >View Details</button>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setVForm({ id: v.id, name: v.name, phone: v.phone }); setShowVendorModal(true); }} 
+                  style={actionBtnStyle('edit')}
+                  title="Edit Vendor"
+                >
+                  <Edit size={16} />
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setSelectedId(v.id); }} 
+                  className="btn-primary" 
+                  style={{ padding: '6px 12px', fontSize: '0.75rem', borderRadius: '8px' }}
+                >
+                  View Details
+                </button>
+              </div>
             ), align: 'right' }
           ]}
           data={filtered}
