@@ -21,6 +21,7 @@ const navItems = [
   { label: 'Rent', href: '/rent', icon: Building2 },
   { label: 'Electricity Bill', href: '/electricity', icon: Zap },
   { label: 'Other Expenses', href: '/other-expenses', icon: Receipt },
+  { label: 'Factories', href: '/settings?tab=factories', icon: Building2 },
   { label: 'Reports', href: '/reports', icon: BarChart3 },
   { label: 'Settings', href: '/settings', icon: Settings },
 ]

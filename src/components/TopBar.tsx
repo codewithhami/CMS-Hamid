@@ -231,23 +231,28 @@ export default function TopBar({ onMenuClick, title }: TopBarProps) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <h1 className="truncate hidden sm:block" style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0f172a', maxWidth: '160px' }}>{title}</h1>
           {!loading && factories.length > 0 && (
-            <select
-              value={activeFactory?.id || ''}
-              onChange={(e) => {
-                const fac = factories.find(f => f.id === e.target.value)
-                if (fac) setActiveFactory(fac)
-              }}
-              style={{
-                fontSize: '0.8125rem', fontWeight: 600, color: '#2563eb',
-                background: '#eff6ff', border: '1px solid #bfdbfe',
-                borderRadius: '6px', padding: '4px 8px', outline: 'none',
-                cursor: 'pointer', maxWidth: '180px', textOverflow: 'ellipsis'
-              }}
-            >
-              {factories.map(f => (
-                <option key={f.id} value={f.id}>{f.name}</option>
-              ))}
-            </select>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <select
+                value={activeFactory?.id || ''}
+                onChange={(e) => {
+                  const fac = factories.find(f => f.id === e.target.value)
+                  if (fac) setActiveFactory(fac)
+                }}
+                style={{
+                  fontSize: '0.8125rem', fontWeight: 600, color: '#2563eb',
+                  background: '#eff6ff', border: '1px solid #bfdbfe',
+                  borderRadius: '6px', padding: '4px 8px', outline: 'none',
+                  cursor: 'pointer', maxWidth: '180px', textOverflow: 'ellipsis'
+                }}
+              >
+                {factories.map(f => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+              </select>
+              <Link href="/settings?tab=factories" style={{ fontSize: '0.75rem', color: '#64748b', textDecoration: 'none', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                Manage
+              </Link>
+            </div>
           )}
         </div>
       </div>

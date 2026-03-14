@@ -20,6 +20,14 @@ export default function SettingsPage() {
 
   const supabase = createClient()
   const { refreshFactories, factories } = useFactory()
+  
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const t = params.get('tab') as Tab
+    if (t && ['profile', 'security', 'notifications', 'factories'].includes(t)) {
+      setTab(t)
+    }
+  }, [])
 
   useEffect(() => {
     async function loadProfile() {
