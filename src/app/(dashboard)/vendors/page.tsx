@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useEffect, Suspense } from 'react'
-import { Truck, Plus, ArrowLeft, ChevronDown, ChevronRight, FileText, Loader2, Edit, Trash2, FileSpreadsheet, Search } from 'lucide-react'
-import { cardStyle, inputStyle, labelStyle, StatCard, searchInputStyle, btnPrimaryStyle, cancelBtn, actionBtnStyle } from '@/lib/styles'
+import { Truck, Plus, ArrowLeft, ChevronDown, ChevronRight, FileText, Loader2, Edit, Trash2, FileSpreadsheet, Search, X } from 'lucide-react'
+import { cardStyle, inputStyle, labelStyle, thStyle, StatCard, searchInputStyle, btnPrimaryStyle, cancelBtn, actionBtnStyle } from '@/lib/styles'
 import { createClient } from '@/lib/supabase/client'
 import { exportVendorInvoice, exportToExcel } from '@/lib/exportUtils'
 import { useSearchParams } from 'next/navigation'
@@ -379,41 +379,70 @@ function VendorsContent() {
         )}
 
         {showOrderModal && (
-          <Modal title={oForm.id ? 'Edit Order' : 'New Order'} onClose={() => setShowOrderModal(false)} onSave={saveOrder} maxWidth="800px">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '20px' }}>
-              <div><label style={labelStyle}>Date</label><input type="date" value={oForm.date} onChange={e => setOForm({...oForm, date: e.target.value})} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Design Name *</label><input type="text" value={oForm.design_name} onChange={e => setOForm({...oForm, design_name: e.target.value})} style={inputStyle} /></div>
-              <div><label style={labelStyle}>Invoice Status (Opt)</label><input type="text" value={oForm.invoice_label} onChange={e => setOForm({...oForm, invoice_label: e.target.value})} style={inputStyle} /></div>
-            </div>
-            
-            <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontWeight: 600 }}>Order Parts</h3>
-              <button onClick={addPart} style={{ ...btnPrimaryStyle, padding: '4px 12px', fontSize: '0.75rem' }}>Add Part</button>
-            </div>
-            
-            <div style={{ maxHeight: '300px', overflowY: 'auto', overflowX: 'auto', border: '1px solid #f1f5f9', borderRadius: '8px' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem', minWidth: '500px' }}>
-                <thead style={{ position: 'sticky', top: 0, background: '#f8fafc', zIndex: 10 }}><tr>
-                  <th style={{ padding: '8px', textAlign: 'left' }}>Part Name</th>
-                  <th style={{ padding: '8px', textAlign: 'right' }}>Stitches</th>
-                  <th style={{ padding: '8px', textAlign: 'right' }}>Rate</th>
-                  <th style={{ padding: '8px', textAlign: 'right' }}>Head</th>
-                  <th style={{ padding: '8px', textAlign: 'right' }}>Rep</th>
-                  <th style={{ padding: '8px', textAlign: 'right' }}>Total</th>
-                </tr></thead>
-                <tbody>
-                  {oForm.parts.map((p, i) => (
-                    <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '4px' }}><input value={p.part_name} onChange={e => updatePart(i, 'part_name', e.target.value)} style={{...inputStyle, padding: '4px 8px'}} /></td>
-                      <td style={{ padding: '4px' }}><input type="number" value={p.stitches} onChange={e => updatePart(i, 'stitches', Number(e.target.value))} style={{...inputStyle, padding: '4px 8px', textAlign: 'right'}} /></td>
-                      <td style={{ padding: '4px' }}><input type="number" step="0.01" value={p.rate} onChange={e => updatePart(i, 'rate', Number(e.target.value))} style={{...inputStyle, padding: '4px 8px', textAlign: 'right'}} /></td>
-                      <td style={{ padding: '4px' }}><input type="number" value={p.head} onChange={e => updatePart(i, 'head', Number(e.target.value))} style={{...inputStyle, padding: '4px 8px', textAlign: 'right'}} /></td>
-                      <td style={{ padding: '4px' }}><input type="number" value={p.repeat_count} onChange={e => updatePart(i, 'repeat_count', Number(e.target.value))} style={{...inputStyle, padding: '4px 8px', textAlign: 'right'}} /></td>
-                      <td style={{ padding: '8px', textAlign: 'right', fontWeight: 600 }}>{formatCurrency(p.total_bill)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <Modal title={oForm.id ? 'Edit Order' : 'New Order'} onClose={() => setShowOrderModal(false)} onSave={saveOrder} maxWidth="900px">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Basic Info Row */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                <div><label style={labelStyle}>Date</label><input type="date" value={oForm.date} onChange={e => setOForm({...oForm, date: e.target.value})} style={inputStyle} /></div>
+                <div><label style={labelStyle}>Design Name *</label><input type="text" value={oForm.design_name} onChange={e => setOForm({...oForm, design_name: e.target.value})} style={inputStyle} placeholder="e.g. Lawn Embroidered" /></div>
+                <div><label style={labelStyle}>Invoice Status (Opt)</label><input type="text" value={oForm.invoice_label} onChange={e => setOForm({...oForm, invoice_label: e.target.value})} style={inputStyle} placeholder="e.g. Pending" /></div>
+              </div>
+              
+              <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
+                <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>Order Parts Details</h3>
+                    <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Enter stitches, rate, head, and repeats per part</p>
+                  </div>
+                  <button onClick={addPart} style={{ ...btnPrimaryStyle, padding: '6px 16px', fontSize: '0.8125rem' }}>
+                    <Plus size={14} /> Add New Part
+                  </button>
+                </div>
+                
+                <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden' }}>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
+                      <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e5e7eb' }}>
+                        <tr>
+                          <th style={{ ...thStyle, padding: '12px 16px' }}>Part Name</th>
+                          <th style={{ ...thStyle, textAlign: 'right', padding: '12px 16px' }}>Stitches</th>
+                          <th style={{ ...thStyle, textAlign: 'right', padding: '12px 16px' }}>Rate</th>
+                          <th style={{ ...thStyle, textAlign: 'right', padding: '12px 16px' }}>Head</th>
+                          <th style={{ ...thStyle, textAlign: 'right', padding: '12px 16px' }}>Repeat</th>
+                          <th style={{ ...thStyle, textAlign: 'right', padding: '12px 16px', background: '#f0f9ff' }}>Total Amount</th>
+                          <th style={{ ...thStyle, width: '50px' }}></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {oForm.parts.map((p, i) => (
+                          <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '8px 12px' }}><input value={p.part_name} onChange={e => updatePart(i, 'part_name', e.target.value)} style={{...inputStyle, padding: '8px 12px', fontSize: '0.8125rem'}} placeholder="e.g. Sleeve" /></td>
+                            <td style={{ padding: '8px 12px' }}><input type="number" value={p.stitches} onChange={e => updatePart(i, 'stitches', Number(e.target.value))} style={{...inputStyle, padding: '8px 12px', textAlign: 'right', fontSize: '0.8125rem'}} /></td>
+                            <td style={{ padding: '8px 12px' }}><input type="number" step="0.01" value={p.rate} onChange={e => updatePart(i, 'rate', Number(e.target.value))} style={{...inputStyle, padding: '8px 12px', textAlign: 'right', fontSize: '0.8125rem'}} /></td>
+                            <td style={{ padding: '8px 12px' }}><input type="number" value={p.head} onChange={e => updatePart(i, 'head', Number(e.target.value))} style={{...inputStyle, padding: '8px 12px', textAlign: 'right', fontSize: '0.8125rem'}} /></td>
+                            <td style={{ padding: '8px 12px' }}><input type="number" value={p.repeat_count} onChange={e => updatePart(i, 'repeat_count', Number(e.target.value))} style={{...inputStyle, padding: '8px 12px', textAlign: 'right', fontSize: '0.8125rem'}} /></td>
+                            <td style={{ padding: '8px 16px', textAlign: 'right', fontWeight: 700, color: '#1d4ed8', background: '#f0f9ff' }}>{formatCurrency(p.total_bill)}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                              <button 
+                                onClick={() => setOForm(prev => ({ ...prev, parts: prev.parts.filter((_, idx) => idx !== i) }))}
+                                style={{ ...actionBtnStyle('delete'), padding: '6px' }}
+                                title="Remove Part"
+                              >
+                                <X size={14} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {oForm.parts.length === 0 && (
+                    <div style={{ padding: '32px', textAlign: 'center', color: '#64748b', fontSize: '0.875rem' }}>
+                      No parts added yet. Click "Add New Part" to begin.
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </Modal>
         )}
