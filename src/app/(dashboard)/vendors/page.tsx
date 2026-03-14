@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense } from 'react'
 import { Truck, Plus, ArrowLeft, ChevronDown, ChevronRight, FileText, Loader2, Edit, FileSpreadsheet, Search } from 'lucide-react'
 import { cardStyle, inputStyle, labelStyle, StatCard, searchInputStyle, btnPrimaryStyle, cancelBtn, actionBtnStyle } from '@/lib/styles'
 import { createClient } from '@/lib/supabase/client'
-import { exportVendorInvoice } from '@/lib/exportUtils'
+import { exportVendorInvoice, exportToExcel } from '@/lib/exportUtils'
 import { useSearchParams } from 'next/navigation'
 import { OrderPart, VendorOrder, VendorPayment, VendorTaan, Vendor } from '@/lib/types'
 import { calculatePartBill, calculateVendorTotalBilling, calculateVendorTotalPaid, calculateVendorBalance, calculateVendorTaans, formatCurrency, formatDate } from '@/lib/utils'
@@ -338,7 +338,7 @@ function VendorsContent() {
 
         {showOrderModal && (
           <Modal title={oForm.id ? 'Edit Order' : 'New Order'} onClose={() => setShowOrderModal(false)} onSave={saveOrder} maxWidth="800px">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '20px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '20px' }}>
               <div><label style={labelStyle}>Date</label><input type="date" value={oForm.date} onChange={e => setOForm({...oForm, date: e.target.value})} style={inputStyle} /></div>
               <div><label style={labelStyle}>Design Name *</label><input type="text" value={oForm.design_name} onChange={e => setOForm({...oForm, design_name: e.target.value})} style={inputStyle} /></div>
               <div><label style={labelStyle}>Invoice Status (Opt)</label><input type="text" value={oForm.invoice_label} onChange={e => setOForm({...oForm, invoice_label: e.target.value})} style={inputStyle} /></div>
@@ -349,8 +349,8 @@ function VendorsContent() {
               <button onClick={addPart} style={{ ...btnPrimaryStyle, padding: '4px 12px', fontSize: '0.75rem' }}>Add Part</button>
             </div>
             
-            <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #f1f5f9', borderRadius: '8px' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
+            <div style={{ maxHeight: '300px', overflowY: 'auto', overflowX: 'auto', border: '1px solid #f1f5f9', borderRadius: '8px' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem', minWidth: '500px' }}>
                 <thead style={{ position: 'sticky', top: 0, background: '#f8fafc', zIndex: 10 }}><tr>
                   <th style={{ padding: '8px', textAlign: 'left' }}>Part Name</th>
                   <th style={{ padding: '8px', textAlign: 'right' }}>Stitches</th>

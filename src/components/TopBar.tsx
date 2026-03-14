@@ -227,13 +227,13 @@ export default function TopBar({ onMenuClick, title }: TopBarProps) {
         >
           <Menu style={{ width: '20px', height: '20px' }} />
         </button>
-        <h1 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0f172a' }}>{title}</h1>
+        <h1 className="truncate" style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0f172a', maxWidth: '160px' }}>{title}</h1>
       </div>
 
       {/* Right side */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         {/* Search */}
-        <div style={{ position: 'relative' }} ref={searchRef}>
+        <div className="hidden sm:block" style={{ position: 'relative' }} ref={searchRef}>
           <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#94a3b8' }} />
           <input
             type="text"

@@ -29,7 +29,6 @@ export default function DashboardLayout({
   const pathname = usePathname()
 
   const title = pageTitles[pathname] || 'Industry Management'
-  const marginLeft = collapsed ? '80px' : '270px'
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
@@ -39,7 +38,7 @@ export default function DashboardLayout({
         mobileOpen={mobileOpen}
         setMobileOpen={setMobileOpen}
       />
-      <div style={{ marginLeft, transition: 'margin-left 0.3s ease' }}>
+      <div className={`main-content-margin ${collapsed ? 'collapsed' : ''}`}>
         <TopBar
           onMenuClick={() => setMobileOpen(true)}
           title={title}

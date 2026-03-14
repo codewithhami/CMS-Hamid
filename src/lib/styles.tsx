@@ -43,7 +43,7 @@ export const modalHeader: React.CSSProperties = {
 }
 
 export const modalBody: React.CSSProperties = {
-  padding: '24px', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px',
+  padding: '24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px',
 }
 
 export const modalFooter: React.CSSProperties = {

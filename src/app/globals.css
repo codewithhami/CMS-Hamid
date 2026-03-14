@@ -333,3 +333,35 @@ body {
 .btn-primary:active {
   transform: translateY(0) scale(0.98);
 }
+
+/* ===== Responsive Utilities ===== */
+.responsive-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.main-content-margin {
+  margin-left: 270px;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content-margin.collapsed {
+  margin-left: 80px;
+}
+
+@media (max-width: 1024px) {
+  .responsive-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .responsive-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .main-content-margin {
+    margin-left: 0px !important;
+  }
+}
