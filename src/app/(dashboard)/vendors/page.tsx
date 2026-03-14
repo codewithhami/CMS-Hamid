@@ -118,6 +118,7 @@ function VendorsContent() {
       await supabase.from('vendor_order_parts').delete().eq('order_id', oForm.id)
       const partsToInsert = oForm.parts.map(p => ({
         order_id: oForm.id,
+        factory_id: activeFactory.id,
         part_name: p.part_name,
         stitches: p.stitches,
         rate: p.rate,
@@ -125,12 +126,14 @@ function VendorsContent() {
         repeat_count: p.repeat_count,
         total_bill: p.total_bill
       }))
-      await supabase.from('vendor_order_parts').insert(partsToInsert)
+      const { error: partsError } = await supabase.from('vendor_order_parts').insert(partsToInsert)
+      if (partsError) return alert('Error saving order parts: ' + partsError.message)
     } else {
       const { data: orderData, error: orderError } = await supabase.from('vendor_orders').insert(orderPayload).select('id').single()
       if (orderError) return alert(orderError.message)
       const partsToInsert = oForm.parts.map(p => ({
         order_id: orderData.id,
+        factory_id: activeFactory.id,
         part_name: p.part_name,
         stitches: p.stitches,
         rate: p.rate,
@@ -138,7 +141,8 @@ function VendorsContent() {
         repeat_count: p.repeat_count,
         total_bill: p.total_bill
       }))
-      await supabase.from('vendor_order_parts').insert(partsToInsert)
+      const { error: partsError } = await supabase.from('vendor_order_parts').insert(partsToInsert)
+      if (partsError) return alert('Error saving order parts: ' + partsError.message)
     }
     fetchData()
     setShowOrderModal(false)
