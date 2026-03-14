@@ -18,7 +18,7 @@ export const labelStyle: React.CSSProperties = {
 export const thStyle: React.CSSProperties = {
   textAlign: 'left' as const, fontSize: '0.6875rem', fontWeight: 600, color: '#64748b',
   textTransform: 'uppercase' as const, letterSpacing: '0.05em', padding: '12px 16px',
-  borderBottom: '1px solid #e5e7eb',
+  borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap',
 }
 
 export const tdStyle: React.CSSProperties = {

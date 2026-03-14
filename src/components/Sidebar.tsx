@@ -57,8 +57,8 @@ export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobile
         borderRight: '1px solid #e5e7eb',
         zIndex: 50,
         display: 'flex', flexDirection: 'column',
-        transition: 'all 0.3s ease',
-        transform: mobileOpen ? 'translateX(0)' : (typeof window !== 'undefined' && window.innerWidth < 1024 ? 'translateX(-100%)' : 'translateX(0)'),
+        transition: 'transform 0.3s ease-in-out',
+        transform: mobileOpen ? 'translateX(0)' : 'var(--sidebar-transform, translateX(0))',
         boxShadow: mobileOpen ? '4px 0 24px rgba(0,0,0,0.1)' : 'none',
       }}>
         {/* Header */}

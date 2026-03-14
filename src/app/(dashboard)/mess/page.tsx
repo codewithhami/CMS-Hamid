@@ -9,6 +9,7 @@ import { exportToExcel } from '@/lib/exportUtils'
 import { formatCurrency } from '@/lib/utils'
 import Modal from '@/components/common/Modal'
 import DataTable from '@/components/common/DataTable'
+import { useFactory } from '@/context/FactoryContext'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
@@ -34,16 +35,20 @@ export default function MessPage() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
   const supabase = createClient()
+  const { activeFactory } = useFactory()
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => {
+    if (activeFactory) fetchData()
+  }, [activeFactory?.id])
 
   async function fetchData() {
+    if (!activeFactory) return
     setLoading(true)
     try {
       const [mRes, eRes, bRes] = await Promise.all([
-        supabase.from('meal_records').select('id, employee_id, date, employees(name)').order('date', { ascending: false }),
-        supabase.from('employees').select('id, name').order('name'),
-        supabase.from('mess_bills').select('*').order('year', { ascending: false }).order('month', { ascending: false })
+        supabase.from('meal_records').select('id, employee_id, date, employees(name)').eq('factory_id', activeFactory.id).order('date', { ascending: false }),
+        supabase.from('employees').select('id, name').eq('factory_id', activeFactory.id).order('name'),
+        supabase.from('mess_bills').select('*').eq('factory_id', activeFactory.id).order('year', { ascending: false }).order('month', { ascending: false })
       ])
       if (mRes.data) setMeals(mRes.data as unknown as MealRecord[])
       if (eRes.data) setEmployees(eRes.data as unknown as Employee[])
@@ -57,7 +62,8 @@ export default function MessPage() {
 
   const saveMeal = async () => {
     if (!mealForm.employee_id) return alert('Please select an employee')
-    const payload = { employee_id: mealForm.employee_id, date: mealForm.date }
+    if (!activeFactory) return alert('No active factory selected')
+    const payload = { employee_id: mealForm.employee_id, date: mealForm.date, factory_id: activeFactory.id }
     const { error } = mealForm.id 
       ? await supabase.from('meal_records').update(payload).eq('id', mealForm.id)
       : await supabase.from('meal_records').insert(payload)
@@ -73,7 +79,8 @@ export default function MessPage() {
   }
 
   const saveBill = async () => {
-    const payload = { month: billForm.month, year: billForm.year, total_amount: billForm.total_amount, notes: billForm.notes }
+    if (!activeFactory) return alert('No active factory selected')
+    const payload = { month: billForm.month, year: billForm.year, total_amount: billForm.total_amount, notes: billForm.notes, factory_id: activeFactory.id }
     const { error } = billForm.id 
       ? await supabase.from('mess_bills').update(payload).eq('id', billForm.id)
       : await supabase.from('mess_bills').insert(payload)

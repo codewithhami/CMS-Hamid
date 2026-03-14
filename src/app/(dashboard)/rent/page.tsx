@@ -9,6 +9,7 @@ import { exportToExcel } from '@/lib/exportUtils'
 import { formatCurrency } from '@/lib/utils'
 import Modal from '@/components/common/Modal'
 import DataTable from '@/components/common/DataTable'
+import { useFactory } from '@/context/FactoryContext'
 
 type RentForm = { id?: string, month_input: string, amount: number, status: 'pending' | 'paid' }
 
@@ -22,15 +23,20 @@ export default function RentPage() {
   const [form, setForm] = useState<RentForm>(emptyForm)
 
   const supabase = createClient()
+  const { activeFactory } = useFactory()
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => {
+    if (activeFactory) fetchData()
+  }, [activeFactory?.id])
 
   async function fetchData() {
+    if (!activeFactory) return
     setLoading(true)
     try {
       const { data, error } = await supabase
         .from('rent_records')
         .select('id, month, year, amount, status')
+        .eq('factory_id', activeFactory.id)
         .order('year', { ascending: false })
         .order('month', { ascending: false })
       if (!error && data) setRecords(data as RentRecord[])
@@ -62,8 +68,9 @@ export default function RentPage() {
   }
 
   const handleSave = async () => {
+    if (!activeFactory) return alert('No active factory selected')
     const [year, month] = form.month_input.split('-').map(Number)
-    const payload = { month, year, amount: form.amount, status: form.status }
+    const payload = { month, year, amount: form.amount, status: form.status, factory_id: activeFactory.id }
     const { error } = form.id 
       ? await supabase.from('rent_records').update(payload).eq('id', form.id)
       : await supabase.from('rent_records').insert(payload)

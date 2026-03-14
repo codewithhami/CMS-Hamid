@@ -43,7 +43,7 @@ export default function DashboardLayout({
           onMenuClick={() => setMobileOpen(true)}
           title={title}
         />
-        <main style={{ padding: '24px' }}>
+        <main className="p-4 sm:p-6">
           {children}
         </main>
       </div>

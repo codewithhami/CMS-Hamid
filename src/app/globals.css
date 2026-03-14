@@ -354,14 +354,45 @@ body {
   .responsive-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  :root {
+    --sidebar-transform: translateX(-100%);
+  }
 }
 
 @media (max-width: 640px) {
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
   .responsive-grid {
     grid-template-columns: 1fr;
   }
   
   .main-content-margin {
     margin-left: 0px !important;
+  }
+  
+  :root {
+    --sidebar-transform: translateX(-100%);
+  }
+
+  /* Slash bulky padding on mobile devices entirely */
+  .auth-bg {
+    padding: 1rem;
+  }
+  .auth-card {
+    padding: 1.5rem 1rem;
+  }
+  .dash-card {
+    padding: 1rem;
+  }
+  .table-card {
+    padding: 1rem;
+  }
+  .modal-card, .modal-card-wrapper {
+    max-width: 95vw !important;
+    width: 95vw !important;
+    margin: 0 auto;
   }
 }

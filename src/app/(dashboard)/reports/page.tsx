@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { exportAllToExcel } from '@/lib/exportUtils'
 import { formatCurrency, calculateVendorTotalBilling } from '@/lib/utils'
 import { Vendor } from '@/lib/types'
+import { useFactory } from '@/context/FactoryContext'
 
 type ExpenseData = { label: string; amount: number; color: string; key: string; table: string }
 
@@ -27,29 +28,31 @@ export default function ReportsPage() {
   const [exporting, setExporting] = useState(false)
 
   const supabase = createClient()
+  const { activeFactory } = useFactory()
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    if (activeFactory) fetchData()
+  }, [activeFactory?.id])
 
   async function fetchData() {
+    if (!activeFactory) return
     setLoading(true)
     try {
       const results = await Promise.all([
-        supabase.from('salary_records').select('base_salary'),
-        supabase.from('thread_expenses').select('total_amount'),
-        supabase.from('clipping_expenses').select('total_amount'),
-        supabase.from('rent_records').select('amount'),
-        supabase.from('electricity_bills').select('total_amount'),
-        supabase.from('mess_bills').select('total_amount'),
-        supabase.from('other_expenses').select('amount'),
+        supabase.from('salary_records').select('base_salary').eq('factory_id', activeFactory.id),
+        supabase.from('thread_expenses').select('total_amount').eq('factory_id', activeFactory.id),
+        supabase.from('clipping_expenses').select('total_amount').eq('factory_id', activeFactory.id),
+        supabase.from('rent_records').select('amount').eq('factory_id', activeFactory.id),
+        supabase.from('electricity_bills').select('total_amount').eq('factory_id', activeFactory.id),
+        supabase.from('mess_bills').select('total_amount').eq('factory_id', activeFactory.id),
+        supabase.from('other_expenses').select('amount').eq('factory_id', activeFactory.id),
         supabase.from('vendors').select(`
           id,
           vendor_orders (
             id,
             vendor_order_parts (total_bill, stitches, rate, head, repeat_count)
           )
-        `)
+        `).eq('factory_id', activeFactory.id)
       ])
 
       const newExpenses = [...expenseConfig].map((exp, i) => {
@@ -81,7 +84,17 @@ export default function ReportsPage() {
         'vendor_payments', 'vendor_taans'
       ]
 
-      const results = await Promise.all(tables.map(t => supabase.from(t).select('*')))
+      if (!activeFactory) return alert('No factory selected')
+
+      // Use the factory_id filter for almost all tables
+      const results = await Promise.all(tables.map(t => {
+        // supplier_order_parts does not natively have factory_id in schema but it has order_id
+        // which links back to vendor_id so we must filter it manually. Same for salary advances
+        if (t === 'vendor_order_parts' || t === 'salary_advances') {
+          return supabase.from(t).select('*')
+        }
+        return supabase.from(t).select('*').eq('factory_id', activeFactory.id)
+      }))
       
       const employees = results[tables.indexOf('employees')].data || []
       const vendors = results[tables.indexOf('vendors')].data || []
@@ -194,7 +207,7 @@ export default function ReportsPage() {
           id, name,
           vendor_orders ( vendor_order_parts ( total_bill, stitches, rate, head, repeat_count ) ),
           vendor_payments ( advance_payment )
-        `)
+        `).eq('factory_id', activeFactory.id)
         
         if (fullVendors) {
           const vendorBalancesData = fullVendors.map(v => {

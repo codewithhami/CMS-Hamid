@@ -9,6 +9,7 @@ import { exportToExcel } from '@/lib/exportUtils'
 import { formatCurrency } from '@/lib/utils'
 import Modal from '@/components/common/Modal'
 import DataTable from '@/components/common/DataTable'
+import { useFactory } from '@/context/FactoryContext'
 
 type ExpForm = { id?: string, date: string, description: string, amount: number }
 
@@ -22,15 +23,20 @@ export default function OtherExpensesPage() {
   const [form, setForm] = useState<ExpForm>(emptyForm)
 
   const supabase = createClient()
+  const { activeFactory } = useFactory()
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => {
+    if (activeFactory) fetchData()
+  }, [activeFactory?.id])
 
   async function fetchData() {
+    if (!activeFactory) return
     setLoading(true)
     try {
       const { data, error } = await supabase
         .from('other_expenses')
         .select('id, date, description, amount')
+        .eq('factory_id', activeFactory.id)
         .order('date', { ascending: false })
       if (!error && data) setRecords(data as OtherExpense[])
     } catch (error) {
@@ -56,7 +62,8 @@ export default function OtherExpensesPage() {
   }
 
   const handleSave = async () => {
-    const payload = { date: form.date, description: form.description, amount: form.amount }
+    if (!activeFactory) return alert('No active factory selected')
+    const payload = { date: form.date, description: form.description, amount: form.amount, factory_id: activeFactory.id }
     const { error } = form.id 
       ? await supabase.from('other_expenses').update(payload).eq('id', form.id)
       : await supabase.from('other_expenses').insert(payload)

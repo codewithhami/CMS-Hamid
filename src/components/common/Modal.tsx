@@ -32,9 +32,9 @@ export default function Modal({
   return (
     <div style={modalOverlay} onClick={onClose} className="animate-fade-in">
       <div 
-        style={{ ...modalCard, maxWidth: maxWidth || modalCard.maxWidth }} 
+        style={{ ...modalCard, ...(maxWidth ? { maxWidth } : {}) }}
+        className="animate-scale-in modal-card-wrapper"
         onClick={e => e.stopPropagation()}
-        className="animate-scale-in"
       >
         <div style={modalHeader}>
           <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>{title}</h3>

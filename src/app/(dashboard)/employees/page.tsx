@@ -10,6 +10,7 @@ import { exportToExcel } from '@/lib/exportUtils'
 import { formatCurrency } from '@/lib/utils'
 import Modal from '@/components/common/Modal'
 import DataTable from '@/components/common/DataTable'
+import { useFactory } from '@/context/FactoryContext'
 
 import { Suspense } from 'react'
 
@@ -35,10 +36,13 @@ function EmployeesContent() {
   const [currentPage, setCurrentPage] = useState(1)
   const perPage = 10
   const supabase = createClient()
+  const { activeFactory } = useFactory()
 
   useEffect(() => {
-    fetchEmployees()
-  }, [])
+    if (activeFactory) {
+      fetchEmployees()
+    }
+  }, [activeFactory?.id])
 
   useEffect(() => {
     const s = searchParams.get('search')
@@ -46,10 +50,12 @@ function EmployeesContent() {
   }, [searchParams])
 
   async function fetchEmployees() {
+    if (!activeFactory) return
     setLoading(true)
     const { data, error } = await supabase
       .from('employees')
       .select('id, name, father_name, cnic, phone, designation, department, salary, joining_date, status, address, created_at, updated_at')
+      .eq('factory_id', activeFactory.id)
       .order('created_at', { ascending: false })
     if (!error && data) setEmployees(data)
     setLoading(false)
@@ -90,7 +96,9 @@ function EmployeesContent() {
         alert('Error updating employee: ' + error.message)
       }
     } else {
-      const { data, error } = await supabase.from('employees').insert(form).select().single()
+      if (!activeFactory) return alert('No active factory selected')
+      const payload = { ...form, factory_id: activeFactory.id }
+      const { data, error } = await supabase.from('employees').insert(payload).select().single()
       if (!error && data) {
         setEmployees(prev => [data, ...prev])
         setShowModal(false)

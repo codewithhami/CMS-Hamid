@@ -5,6 +5,7 @@ import { Menu, Search, Bell, User, Users, Store, FileText, LayoutDashboard, Sett
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useFactory } from '@/context/FactoryContext'
 
 interface TopBarProps {
   onMenuClick: () => void
@@ -50,6 +51,7 @@ export default function TopBar({ onMenuClick, title }: TopBarProps) {
   const searchRef = useRef<HTMLDivElement>(null)
   const notifRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
+  const { factories, activeFactory, setActiveFactory, loading } = useFactory()
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -217,17 +219,37 @@ export default function TopBar({ onMenuClick, title }: TopBarProps) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <button
           onClick={onMenuClick}
+          className="lg:hidden flex"
           style={{
-            display: 'none',
             alignItems: 'center', justifyContent: 'center',
             width: '36px', height: '36px', borderRadius: '10px',
             background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b',
           }}
-          className="lg-hide"
         >
           <Menu style={{ width: '20px', height: '20px' }} />
         </button>
-        <h1 className="truncate" style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0f172a', maxWidth: '160px' }}>{title}</h1>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <h1 className="truncate hidden sm:block" style={{ fontSize: '1.125rem', fontWeight: 700, color: '#0f172a', maxWidth: '160px' }}>{title}</h1>
+          {!loading && factories.length > 0 && (
+            <select
+              value={activeFactory?.id || ''}
+              onChange={(e) => {
+                const fac = factories.find(f => f.id === e.target.value)
+                if (fac) setActiveFactory(fac)
+              }}
+              style={{
+                fontSize: '0.8125rem', fontWeight: 600, color: '#2563eb',
+                background: '#eff6ff', border: '1px solid #bfdbfe',
+                borderRadius: '6px', padding: '4px 8px', outline: 'none',
+                cursor: 'pointer', maxWidth: '180px', textOverflow: 'ellipsis'
+              }}
+            >
+              {factories.map(f => (
+                <option key={f.id} value={f.id}>{f.name}</option>
+              ))}
+            </select>
+          )}
+        </div>
       </div>
 
       {/* Right side */}

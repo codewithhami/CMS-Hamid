@@ -9,6 +9,7 @@ import { exportToExcel } from '@/lib/exportUtils'
 import { formatCurrency } from '@/lib/utils'
 import Modal from '@/components/common/Modal'
 import DataTable from '@/components/common/DataTable'
+import { useFactory } from '@/context/FactoryContext'
 
 type ClipForm = { id?: string, description: string, total_amount: number }
 
@@ -22,15 +23,20 @@ export default function ClippingExpensePage() {
   const [form, setForm] = useState<ClipForm>(emptyForm)
 
   const supabase = createClient()
+  const { activeFactory } = useFactory()
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => {
+    if (activeFactory) fetchData()
+  }, [activeFactory?.id])
 
   async function fetchData() {
+    if (!activeFactory) return
     setLoading(true)
     try {
       const { data, error } = await supabase
         .from('clipping_expenses')
         .select('id, description, total_amount, created_at')
+        .eq('factory_id', activeFactory.id)
         .order('created_at', { ascending: false })
       if (!error && data) setRecords(data as ClippingExpense[])
     } catch (error) {
@@ -56,7 +62,8 @@ export default function ClippingExpensePage() {
   }
 
   const handleSave = async () => {
-    const payload = { description: form.description, total_amount: form.total_amount }
+    if (!activeFactory) return alert('No active factory selected')
+    const payload = { description: form.description, total_amount: form.total_amount, factory_id: activeFactory.id }
     const { error } = form.id 
       ? await supabase.from('clipping_expenses').update(payload).eq('id', form.id)
       : await supabase.from('clipping_expenses').insert(payload)

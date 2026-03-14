@@ -10,6 +10,7 @@ import { OrderPart, VendorOrder, VendorPayment, VendorTaan, Vendor } from '@/lib
 import { calculatePartBill, calculateVendorTotalBilling, calculateVendorTotalPaid, calculateVendorBalance, calculateVendorTaans, formatCurrency, formatDate } from '@/lib/utils'
 import Modal from '@/components/common/Modal'
 import DataTable from '@/components/common/DataTable'
+import { useFactory } from '@/context/FactoryContext'
 
 function VendorsContent() {
   const searchParams = useSearchParams()
@@ -42,12 +43,16 @@ function VendorsContent() {
   const [expandedOrders, setExpandedOrders] = useState<string[]>([])
 
   const supabase = createClient()
+  const { activeFactory } = useFactory()
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    if (activeFactory) {
+      fetchData()
+    }
+  }, [activeFactory?.id])
 
   async function fetchData() {
+    if (!activeFactory) return
     setLoading(true)
     const { data, error } = await supabase
       .from('vendors')
@@ -62,6 +67,7 @@ function VendorsContent() {
         vendor_payments (id, vendor_id, date, advance_payment, notes),
         vendor_taans (id, vendor_id, date, count, notes)
       `)
+      .eq('factory_id', activeFactory.id)
       .order('name')
     
     if (error) {
@@ -82,8 +88,9 @@ function VendorsContent() {
   // CRUD actions
   async function saveVendor() {
     if (!vForm.name || !vForm.phone) return alert('Name and phone are required')
+    if (!activeFactory) return alert('No active factory selected')
     
-    const payload = { name: vForm.name, phone: vForm.phone }
+    const payload = { name: vForm.name, phone: vForm.phone, factory_id: activeFactory.id }
     if (vForm.id) {
       const { error } = await supabase.from('vendors').update(payload).eq('id', vForm.id)
       if (!error) { fetchData(); setShowVendorModal(false) } else alert(error.message)
@@ -95,10 +102,11 @@ function VendorsContent() {
 
   async function saveOrder() {
     if (!oForm.design_name || oForm.parts.length === 0) return alert('Design name and parts are required')
-    if (!selectedId) return
+    if (!selectedId || !activeFactory) return
 
     const orderPayload = {
       vendor_id: selectedId,
+      factory_id: activeFactory.id,
       date: oForm.date,
       design_name: oForm.design_name,
       invoice_label: oForm.invoice_label
@@ -137,15 +145,15 @@ function VendorsContent() {
   }
 
   async function savePayment() {
-    if (!selectedId) return
-    const payload = { vendor_id: selectedId, date: pForm.date, advance_payment: pForm.advance_payment, notes: pForm.notes }
+    if (!selectedId || !activeFactory) return
+    const payload = { vendor_id: selectedId, factory_id: activeFactory.id, date: pForm.date, advance_payment: pForm.advance_payment, notes: pForm.notes }
     const { error } = pForm.id ? await supabase.from('vendor_payments').update(payload).eq('id', pForm.id) : await supabase.from('vendor_payments').insert(payload)
     if (!error) { fetchData(); setShowPaymentModal(false) } else alert(error.message)
   }
 
   async function saveTaan() {
-    if (!selectedId) return
-    const payload = { vendor_id: selectedId, date: tForm.date, count: tForm.count, notes: tForm.notes }
+    if (!selectedId || !activeFactory) return
+    const payload = { vendor_id: selectedId, factory_id: activeFactory.id, date: tForm.date, count: tForm.count, notes: tForm.notes }
     const { error } = tForm.id ? await supabase.from('vendor_taans').update(payload).eq('id', tForm.id) : await supabase.from('vendor_taans').insert(payload)
     if (!error) { fetchData(); setShowTaanModal(false) } else alert(error.message)
   }
@@ -284,7 +292,7 @@ function VendorsContent() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
             <div style={cardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <h2 style={{ fontSize: '1.125rem', fontWeight: 700 }}>Payment History</h2>

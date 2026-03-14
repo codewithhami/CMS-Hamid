@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { FactoryProvider } from '@/context/FactoryContext'
 
 const inter = Inter({
   subsets: ["latin"],
@@ -13,6 +14,12 @@ export const metadata: Metadata = {
   keywords: ["industry management", "employee management", "payroll", "expense tracking"],
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -21,7 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased`}>
-        {children}
+        <FactoryProvider>
+          {children}
+        </FactoryProvider>
       </body>
     </html>
   );

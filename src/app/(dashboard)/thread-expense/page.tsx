@@ -9,6 +9,7 @@ import { exportToExcel } from '@/lib/exportUtils'
 import { formatCurrency } from '@/lib/utils'
 import Modal from '@/components/common/Modal'
 import DataTable from '@/components/common/DataTable'
+import { useFactory } from '@/context/FactoryContext'
 
 type ThreadForm = { id?: string, date: string, thread_type: string, quantity: number, unit: string, total_amount: number }
 
@@ -22,15 +23,20 @@ export default function ThreadExpensePage() {
   const [form, setForm] = useState<ThreadForm>(emptyForm)
 
   const supabase = createClient()
+  const { activeFactory } = useFactory()
 
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => {
+    if (activeFactory) fetchData()
+  }, [activeFactory?.id])
 
   async function fetchData() {
+    if (!activeFactory) return
     setLoading(true)
     try {
       const { data, error } = await supabase
         .from('thread_expenses')
         .select('id, date, thread_type, quantity, unit, total_amount')
+        .eq('factory_id', activeFactory.id)
         .order('date', { ascending: false })
       if (!error && data) setRecords(data as ThreadExpense[])
     } catch (error) {
@@ -56,12 +62,14 @@ export default function ThreadExpensePage() {
   }
 
   const handleSave = async () => {
+    if (!activeFactory) return alert('No active factory selected')
     const payload = { 
       date: form.date, 
       thread_type: form.thread_type, 
       quantity: form.quantity, 
       unit: form.unit, 
-      total_amount: form.total_amount 
+      total_amount: form.total_amount,
+      factory_id: activeFactory.id
     }
     const { error } = form.id 
       ? await supabase.from('thread_expenses').update(payload).eq('id', form.id)

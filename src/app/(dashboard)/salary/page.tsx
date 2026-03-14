@@ -9,6 +9,7 @@ import { exportToExcel } from '@/lib/exportUtils'
 import { formatCurrency } from '@/lib/utils'
 import Modal from '@/components/common/Modal'
 import DataTable from '@/components/common/DataTable'
+import { useFactory } from '@/context/FactoryContext'
 
 type SalaryForm = { id?: string, employee_id: string, month_input: string, base_salary: number, advance_amount: number, status: 'pending' | 'paid' | 'partial' }
 
@@ -25,26 +26,34 @@ export default function SalaryPage() {
   const [form, setForm] = useState<SalaryForm>(emptyRecord)
 
   const supabase = createClient()
+  const { activeFactory } = useFactory()
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    if (activeFactory) {
+      fetchData()
+    }
+  }, [activeFactory?.id])
 
   async function fetchData() {
+    if (!activeFactory) return
     setLoading(true)
     try {
       const [rRes, eRes, mRes, bRes] = await Promise.all([
         supabase.from('salary_records')
           .select('id, employee_id, month, year, base_salary, advance_amount, net_salary, status, employees(name)')
+          .eq('factory_id', activeFactory.id)
           .order('year', { ascending: false })
           .order('month', { ascending: false }),
         supabase.from('employees')
           .select('id, name, salary')
+          .eq('factory_id', activeFactory.id)
           .order('name'),
         supabase.from('meal_records')
-          .select('id, employee_id, date'),
+          .select('id, employee_id, date')
+          .eq('factory_id', activeFactory.id),
         supabase.from('mess_bills')
           .select('id, month, year, total_amount')
+          .eq('factory_id', activeFactory.id)
       ])
       
       if (rRes.data) setRecords(rRes.data as unknown as SalaryRecord[])
@@ -109,10 +118,12 @@ export default function SalaryPage() {
 
   const handleSave = async () => {
     if (!form.employee_id) return alert('Please select an employee')
+    if (!activeFactory) return alert('No active factory selected')
     
     const [year, month] = form.month_input.split('-').map(Number)
     const payload = {
       employee_id: form.employee_id,
+      factory_id: activeFactory.id,
       month,
       year,
       base_salary: form.base_salary,

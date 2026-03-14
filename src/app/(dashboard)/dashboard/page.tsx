@@ -12,6 +12,7 @@ import { createClient } from '@/lib/supabase/client'
 import { StatCard, cardStyle } from '@/lib/styles'
 import { formatCurrency, calculateVendorTotalBilling, calculateVendorTotalPaid, calculateVendorBalance } from '@/lib/utils'
 import { Vendor } from '@/lib/types'
+import { useFactory } from '@/context/FactoryContext'
 
 const modules = [
   { label: 'Employees', desc: 'Workforce management', href: '/employees', icon: Users, color: '#2563eb', bg: '#eff6ff' },
@@ -48,23 +49,27 @@ export default function DashboardPage() {
   })
 
   const supabase = createClient()
+  const { activeFactory } = useFactory()
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    if (activeFactory) {
+      fetchData()
+    }
+  }, [activeFactory?.id])
 
   async function fetchData() {
+    if (!activeFactory) return
     setLoading(true)
 
     try {
       const results = await Promise.all([
-        supabase.from('salary_records').select('base_salary'),
-        supabase.from('rent_records').select('amount'),
-        supabase.from('electricity_bills').select('total_amount'),
-        supabase.from('thread_expenses').select('total_amount'),
-        supabase.from('clipping_expenses').select('total_amount'),
-        supabase.from('mess_bills').select('total_amount'),
-        supabase.from('other_expenses').select('amount'),
+        supabase.from('salary_records').select('base_salary').eq('factory_id', activeFactory.id),
+        supabase.from('rent_records').select('amount').eq('factory_id', activeFactory.id),
+        supabase.from('electricity_bills').select('total_amount').eq('factory_id', activeFactory.id),
+        supabase.from('thread_expenses').select('total_amount').eq('factory_id', activeFactory.id),
+        supabase.from('clipping_expenses').select('total_amount').eq('factory_id', activeFactory.id),
+        supabase.from('mess_bills').select('total_amount').eq('factory_id', activeFactory.id),
+        supabase.from('other_expenses').select('amount').eq('factory_id', activeFactory.id),
         supabase.from('vendors').select(`
           id,
           vendor_orders (
@@ -72,7 +77,7 @@ export default function DashboardPage() {
             vendor_order_parts (total_bill, stitches, rate, head, repeat_count)
           ),
           vendor_payments (advance_payment)
-        `)
+        `).eq('factory_id', activeFactory.id)
       ])
 
       const newExpenses = [...expenseConfig].map((exp, i) => {
