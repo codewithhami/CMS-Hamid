@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { exportVendorInvoice, exportToExcel } from '@/lib/exportUtils'
 import { useSearchParams } from 'next/navigation'
 import { OrderPart, VendorOrder, VendorPayment, VendorTaan, Vendor } from '@/lib/types'
-import { calculatePartBill, calculateVendorTotalBilling, calculateVendorTotalPaid, calculateVendorBalance, calculateVendorTaans, formatCurrency, formatDate } from '@/lib/utils'
+import { calculatePartBill, calculateVendorTotalBilling, calculateVendorTotalPaid, calculateVendorBalance, calculateVendorTaans, formatCurrency, formatDate, safeNumber } from '@/lib/utils'
 import Modal from '@/components/common/Modal'
 import DataTable from '@/components/common/DataTable'
 import { useFactory } from '@/context/FactoryContext'
@@ -101,7 +101,8 @@ function VendorsContent() {
   }
 
   async function saveOrder() {
-    if (!oForm.design_name || oForm.parts.length === 0) return alert('Design name and parts are required')
+    if (!oForm.design_name) return alert('Design name is required')
+    if (oForm.parts.length === 0) return alert('At least one order part is required')
     if (!selectedId || !activeFactory) return
 
     const orderPayload = {
@@ -112,40 +113,43 @@ function VendorsContent() {
       invoice_label: oForm.invoice_label
     }
 
-    if (oForm.id) {
-      const { error: orderError } = await supabase.from('vendor_orders').update(orderPayload).eq('id', oForm.id)
-      if (orderError) return alert(orderError.message)
-      await supabase.from('vendor_order_parts').delete().eq('order_id', oForm.id)
+    setLoading(true)
+    try {
+      let orderId = oForm.id
+      if (orderId) {
+        const { error: orderError } = await supabase.from('vendor_orders').update(orderPayload).eq('id', orderId)
+        if (orderError) throw new Error('Order Update Error: ' + orderError.message)
+        
+        // Clear existing parts and replace
+        const { error: delError } = await supabase.from('vendor_order_parts').delete().eq('order_id', orderId)
+        if (delError) throw new Error('Error clearing old parts: ' + delError.message)
+      } else {
+        const { data: orderData, error: orderError } = await supabase.from('vendor_orders').insert(orderPayload).select('id').single()
+        if (orderError) throw new Error('Order Creation Error: ' + orderError.message)
+        orderId = orderData.id
+      }
+
       const partsToInsert = oForm.parts.map(p => ({
-        order_id: oForm.id,
+        order_id: orderId,
         factory_id: activeFactory.id,
-        part_name: p.part_name,
-        stitches: p.stitches,
-        rate: p.rate,
-        head: p.head,
-        repeat_count: p.repeat_count,
-        total_bill: p.total_bill
+        part_name: p.part_name || 'Unnamed Part',
+        stitches: safeNumber(p.stitches),
+        rate: safeNumber(p.rate),
+        head: safeNumber(p.head),
+        repeat_count: safeNumber(p.repeat_count),
+        total_bill: calculatePartBill(p)
       }))
+
       const { error: partsError } = await supabase.from('vendor_order_parts').insert(partsToInsert)
-      if (partsError) return alert('Error saving order parts: ' + partsError.message)
-    } else {
-      const { data: orderData, error: orderError } = await supabase.from('vendor_orders').insert(orderPayload).select('id').single()
-      if (orderError) return alert(orderError.message)
-      const partsToInsert = oForm.parts.map(p => ({
-        order_id: orderData.id,
-        factory_id: activeFactory.id,
-        part_name: p.part_name,
-        stitches: p.stitches,
-        rate: p.rate,
-        head: p.head,
-        repeat_count: p.repeat_count,
-        total_bill: p.total_bill
-      }))
-      const { error: partsError } = await supabase.from('vendor_order_parts').insert(partsToInsert)
-      if (partsError) return alert('Error saving order parts: ' + partsError.message)
+      if (partsError) throw new Error('Order Parts Error: ' + partsError.message)
+
+      await fetchData()
+      setShowOrderModal(false)
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setLoading(false)
     }
-    fetchData()
-    setShowOrderModal(false)
   }
 
   async function savePayment() {
@@ -219,13 +223,22 @@ function VendorsContent() {
   }
 
   function openEditOrderModal(order: VendorOrder) {
+    let parts: Omit<OrderPart, 'id'>[] = order.vendor_order_parts.map(p => ({ ...p }))
+    if (parts.length === 0) {
+      // If order is somehow empty, add defaults
+      parts = [
+        { part_name: 'Front', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: order.id, total_bill: 0 },
+        { part_name: 'Back', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: order.id, total_bill: 0 },
+        { part_name: 'Duphata', stitches: 0, rate: 0.9, head: 24, repeat_count: 8, order_id: order.id, total_bill: 0 }
+      ]
+    }
     setOForm({
       id: order.id,
       vendor_id: order.vendor_id,
       date: order.date,
       design_name: order.design_name,
       invoice_label: order.invoice_label || '',
-      parts: order.vendor_order_parts.map(p => ({ ...p }))
+      parts: parts
     })
     setShowOrderModal(true)
   }
