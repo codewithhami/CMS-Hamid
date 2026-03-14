@@ -268,6 +268,17 @@ function VendorsContent() {
           <div style={{ display: 'flex', gap: '12px' }}>
             <button onClick={() => deleteVendor(selected.id)} style={{ ...btnPrimaryStyle, background: '#fef2f2', color: '#dc2626', border: '1px solid #fee2e2' }}>Delete Vendor</button>
             <button onClick={() => { setVForm({ id: selected.id, name: selected.name, phone: selected.phone }); setShowVendorModal(true) }} style={{ ...btnPrimaryStyle, background: '#f8fafc', color: '#444', border: '1px solid #e2e8f0' }}>Edit Vendor</button>
+            <button 
+              onClick={() => { 
+                setOForm({ id: '', vendor_id: selected.id, date: new Date().toISOString().split('T')[0], design_name: '', invoice_label: '', parts: [
+                    { part_name: 'Suit 1', stitches: 0, rate: 600, head: 1, repeat_count: 1, order_id: '', total_bill: 600, is_suit: true, suit_quantity: 1 }
+                ]}); 
+                setShowOrderModal(true) 
+              }} 
+              style={{ ...btnPrimaryStyle, background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)' }}
+            >
+              <Plus size={16} /> Add Suit Order
+            </button>
             <button onClick={() => { 
                 setOForm({ id: '', vendor_id: selected.id, date: new Date().toISOString().split('T')[0], design_name: '', invoice_label: '', parts: [
                     { part_name: 'Front', stitches: 0, rate: 0.9, head: 24, repeat_count: 4, order_id: '', total_bill: 0, is_suit: false, suit_quantity: 0 },
@@ -335,11 +346,19 @@ function VendorsContent() {
                             <tbody>
                               {order.vendor_order_parts.map(p => (
                                 <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                  <td style={{ padding: '12px' }}>{p.part_name}</td>
-                                  <td style={{ textAlign: 'right' }}>{p.stitches.toLocaleString()}</td>
+                                  <td style={{ padding: '12px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                      {p.is_suit && <span style={{ padding: '2px 6px', borderRadius: '4px', background: '#f5f3ff', color: '#7c3aed', fontSize: '10px', fontWeight: 700, border: '1px solid #ddd6fe' }}>SUIT</span>}
+                                      {!p.is_suit && <span style={{ padding: '2px 6px', borderRadius: '4px', background: '#eff6ff', color: '#2563eb', fontSize: '10px', fontWeight: 700, border: '1px solid #dbeafe' }}>STITCH</span>}
+                                      <span>{p.part_name}</span>
+                                    </div>
+                                  </td>
+                                  <td style={{ textAlign: 'right' }}>
+                                    {p.is_suit ? <span style={{ fontWeight: 600 }}>{p.suit_quantity} (Qty)</span> : p.stitches.toLocaleString()}
+                                  </td>
                                   <td style={{ textAlign: 'right' }}>{p.rate}</td>
-                                  <td style={{ textAlign: 'right' }}>{p.head}</td>
-                                  <td style={{ textAlign: 'right' }}>{p.repeat_count}</td>
+                                  <td style={{ textAlign: 'right', color: p.is_suit ? '#cbd5e1' : 'inherit' }}>{p.is_suit ? '-' : p.head}</td>
+                                  <td style={{ textAlign: 'right', color: p.is_suit ? '#cbd5e1' : 'inherit' }}>{p.is_suit ? '-' : p.repeat_count}</td>
                                   <td style={{ textAlign: 'right', paddingRight: '16px', fontWeight: 600 }}>{formatCurrency(p.total_bill)}</td>
                                 </tr>
                               ))}
