@@ -139,8 +139,9 @@ function VendorsContent() {
         repeat_count: safeNumber(p.repeat_count)
       }))
 
+      console.log('Inserting Parts Payload:', partsToInsert)
       const { error: partsError } = await supabase.from('vendor_order_parts').insert(partsToInsert)
-      if (partsError) throw new Error('Order Parts Error: ' + partsError.message)
+      if (partsError) throw new Error('[V2] Order Parts Error: ' + partsError.message)
 
       await fetchData()
       setShowOrderModal(false)
